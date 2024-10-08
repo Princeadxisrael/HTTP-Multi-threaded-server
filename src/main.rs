@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use server::Server;
 use https::Method;
 use https::Request;
