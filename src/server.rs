@@ -1,5 +1,5 @@
 use std::io::Read;
-use crate::https::{ request, ParseError, Request, Response, StatusCode};
+use crate::https::{ ParseError, Request, Response, StatusCode};
 use std::convert::TryFrom;
 use std::net::TcpListener;
 pub struct Server{
