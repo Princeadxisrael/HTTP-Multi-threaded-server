@@ -46,7 +46,7 @@ impl <'buf >TryFrom<&'buf [u8]> for Request <'buf>{
         if protocol != "HTTP/1.1"{
             return Err(ParseError::InvalidProtocol);
         }
-        let method: Method=method.parse()?; //use the parse method to convert the method string into the methdd enum
+        let method: Method=method.parse()?; //parse the method string into the methdd enum
         
         let mut query_string=None;
         if let Some(i) =  path.find('?'){
@@ -59,7 +59,7 @@ impl <'buf >TryFrom<&'buf [u8]> for Request <'buf>{
 
 }
 
-//creating a helper function to partition the request string into characters
+// helper function to partition the request string into characters
 fn get_next_word(request: &str)->Option<(&str, &str)>{
     for (i, c) in request.chars().enumerate(){
         if c == ' ' || c =='\r' {
