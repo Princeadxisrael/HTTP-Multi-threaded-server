@@ -1,9 +1,17 @@
 use std::io::Read;
-use crate::https::Request;
+use crate::https::{ request, ParseError, Request, Response, StatusCode};
 use std::convert::TryFrom;
 use std::net::TcpListener;
 pub struct Server{
     addr: String
+}
+
+pub trait Handler {
+    fn handle_request(&mut self, request: &Request)->Response;
+    fn handle_bad_request(&mut self, e:&ParseError)->Response{
+        println!("failed to parse request: {}", e);
+        Response::new(StatusCode::BadRequest, None)
+    }
 }
 
 impl Server{
@@ -14,7 +22,7 @@ impl Server{
         }
     }
     //method run to run the server
-    pub fn run(self){
+    pub fn run(self, mut handler:impl Handler){
         println!("listening on {}", self.addr);
         let listener= TcpListener::bind(&self.addr).unwrap();
         loop{
@@ -25,19 +33,24 @@ impl Server{
                    match stream.read(&mut buffer){
                         Ok(_)=>{
                             println!("Recieved a request: {}", String::from_utf8_lossy(&buffer));
-                            //implement the tryfrom trait to convert the buffer from byte &[u8] to array
-                            match Request::try_from(&buffer[..]) {
-                               Ok(request)=>{}
-                               Err(e)=>print!("failed to read connection: {}" ,e)
-                            };
+                            //implement the tryfrom trait to parse the buffer from byte &[u8] to array
+                       let response=match Request::try_from(&buffer[..]) {
+                               Ok(request)=>handler.handle_request(&request),
+                               Err(e)=>handler.handle_bad_request(&e)
 
+                        };
+                        if let Err(e) =  response.send(&mut stream){
+                            println!("Failed to send response: {}", e);
+                    
                         }
-                    Err(e)=>println!("Failed to read from connection: {}", e)
+                       
                     }
+                    Err(e)=>println!("An error occured:{} ", e),
                 }
-                Err(e)=>println!("An error occured:{} ", e)
+               
             }
+                Err(_) => todo!(),
         }
     }
-    
+}
 }
